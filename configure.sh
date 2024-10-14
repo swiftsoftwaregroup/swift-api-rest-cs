@@ -11,3 +11,6 @@ if [ -z $(dotnet nuget list source | grep $nuget_source) ]; then
 fi
 
 dotnet restore
+
+# add tools
+dotnet tool install --global dotnet-ef
