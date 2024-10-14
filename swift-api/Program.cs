@@ -3,6 +3,7 @@ using SwiftAPI.Data;
 using SwiftAPI.Models;
 using DotNetEnv;
 using Microsoft.Data.Sqlite;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +35,20 @@ else
 }
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Books API",
+        Description = "A simple API to manage books in a store",
+        Version = "v1",
+        Contact = new OpenApiContact
+        {
+            Name = "API Support",
+            Email = "hello@swiftsoftwasregroup.com"
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -74,12 +88,25 @@ app.MapPost("/books", async (BookDto bookDto, ApplicationDbContext db) =>
     return Results.Created($"/books/{book.Id}", book);
 })
 .WithName("CreateBook")
-.WithOpenApi();
+.WithOpenApi(operation => new OpenApiOperation(operation)
+{
+    Summary = "Create a new book",
+    Description = "Creates a new book entry in the database",
+    Tags = new List<OpenApiTag> { new() { Name = "Books" } }
+})
+.Produces<Book>(StatusCodes.Status201Created)
+.ProducesValidationProblem();
 
 app.MapGet("/books", async (ApplicationDbContext db, int skip = 0, int limit = 100) =>
     await db.Books.Skip(skip).Take(limit).ToListAsync())
 .WithName("GetBooks")
-.WithOpenApi();
+.WithOpenApi(operation => new OpenApiOperation(operation)
+{
+    Summary = "Get all books",
+    Description = "Retrieves a list of all books in the database",
+    Tags = new List<OpenApiTag> { new() { Name = "Books" } }
+})
+.Produces<List<Book>>();
 
 app.MapGet("/books/{id}", async (ApplicationDbContext db, int id) =>
     await db.Books.FindAsync(id)
@@ -87,7 +114,14 @@ app.MapGet("/books/{id}", async (ApplicationDbContext db, int id) =>
             ? Results.Ok(book)
             : Results.NotFound())
 .WithName("GetBook")
-.WithOpenApi();
+.WithOpenApi(operation => new OpenApiOperation(operation)
+{
+    Summary = "Get a specific book",
+    Description = "Retrieves a specific book by its ID",
+    Tags = new List<OpenApiTag> { new() { Name = "Books" } }
+})
+.Produces<Book>()
+.ProducesProblem(StatusCodes.Status404NotFound);
 
 app.MapPut("/books/{id}", async (ApplicationDbContext db, int id, BookDto bookDto) =>
 {
@@ -105,7 +139,15 @@ app.MapPut("/books/{id}", async (ApplicationDbContext db, int id, BookDto bookDt
     return Results.NoContent();
 })
 .WithName("UpdateBook")
-.WithOpenApi();
+.WithOpenApi(operation => new OpenApiOperation(operation)
+{
+    Summary = "Update a book",
+    Description = "Updates an existing book's information",
+    Tags = new List<OpenApiTag> { new() { Name = "Books" } }
+})
+.ProducesValidationProblem()
+.ProducesProblem(StatusCodes.Status404NotFound)
+.Produces(StatusCodes.Status204NoContent);
 
 app.MapDelete("/books/{id}", async (ApplicationDbContext db, int id) =>
 {
@@ -119,11 +161,13 @@ app.MapDelete("/books/{id}", async (ApplicationDbContext db, int id) =>
     return Results.NotFound();
 })
 .WithName("DeleteBook")
-.WithOpenApi();
-
-// Dispose the keep-alive connection when the application shuts down
-app.Lifetime.ApplicationStopping.Register(() => {
-    keepAliveConnection?.Dispose();
-});
+.WithOpenApi(operation => new OpenApiOperation(operation)
+{
+    Summary = "Delete a book",
+    Description = "Deletes a specific book from the database",
+    Tags = new List<OpenApiTag> { new() { Name = "Books" } }
+})
+.Produces<Book>()
+.ProducesProblem(StatusCodes.Status404NotFound);
 
 app.Run();
