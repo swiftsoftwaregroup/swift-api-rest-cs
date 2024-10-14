@@ -31,7 +31,7 @@ Browse the docs and test the API via the Swagger UI:
 open http://localhost:5000/swagger
 ```
 
-### How to create a new project
+## How to create a new project
 
 Activate `dotnet`:
 
