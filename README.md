@@ -49,7 +49,7 @@ dotnet new sln --name swift-api
 #### Create C# project
 
 ```bash
-# add cli project
+# add web project
 dotnet new web --name swift-api --framework net8.0
 dotnet sln add swift-api
 
