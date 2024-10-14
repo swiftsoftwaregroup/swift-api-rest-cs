@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "swift-api", "swift-api\swift-api.csproj", "{9056D061-5130-4D6D-9100-50A072189BD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "swift-api-tests", "swift-api-tests\swift-api-tests.csproj", "{E207436F-4BEB-4784-8833-717334D0533D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{9056D061-5130-4D6D-9100-50A072189BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9056D061-5130-4D6D-9100-50A072189BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9056D061-5130-4D6D-9100-50A072189BD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E207436F-4BEB-4784-8833-717334D0533D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E207436F-4BEB-4784-8833-717334D0533D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E207436F-4BEB-4784-8833-717334D0533D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E207436F-4BEB-4784-8833-717334D0533D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

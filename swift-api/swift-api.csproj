@@ -19,4 +19,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SwiftAPI.Tests" />
+  </ItemGroup>
 </Project>

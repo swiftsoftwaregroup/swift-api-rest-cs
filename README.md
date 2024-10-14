@@ -41,6 +41,14 @@ open http://127.0.0.1:5000/redoc
 
 ![redoc-ui](./docs/redoc-ui.png)
 
+## Test
+
+Run unit tests:
+
+```bash
+dotnet test
+```
+
 ## How to create a new project
 
 Activate `dotnet`:
@@ -71,6 +79,16 @@ dotnet add swift-api package Microsoft.EntityFrameworkCore.Sqlite
 
 dotnet add swift-api package Microsoft.AspNetCore.OpenApi
 dotnet add swift-api package Swashbuckle.AspNetCore
+
+# add test project
+dotnet new xunit --name swift-api-tests
+dotnet sln add swift-api-tests
+
+dotnet add swift-api-tests package Microsoft.EntityFrameworkCore.InMemory
+dotnet add swift-api-tests package Microsoft.AspNetCore.Mvc.Testing
+
+# add reference to the main project
+dotnet add swift-api-tests reference swift-api
 
 # add tools
 dotnet tool install --global dotnet-ef
