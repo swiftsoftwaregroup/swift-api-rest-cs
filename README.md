@@ -28,8 +28,18 @@ Run:
 Browse the docs and test the API via the Swagger UI:
 
 ```bash
-open http://localhost:5000/swagger
+open http://localhost:5000/docs
 ```
+
+![swagger-ui](./docs/swagger-ui.png)
+
+Browse the docs using Redoc. This is an alternative to the Swagger UI:
+
+```bash
+open http://127.0.0.1:5000/redoc
+```
+
+![redoc-ui](./docs/redoc-ui.png)
 
 ## How to create a new project
 

@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using SwiftAPI.Data;
 using SwiftAPI.Models;
-using DotNetEnv;
 using Microsoft.Data.Sqlite;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,13 +40,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Books API",
-        Description = "A simple API to manage books in a store",
-        Version = "v1",
-        Contact = new OpenApiContact
-        {
-            Name = "API Support",
-            Email = "hello@swiftsoftwasregroup.com"
-        }
+        Description = "A simple API for managing books",
+        Version = "v1"
     });
 });
 
@@ -66,8 +61,30 @@ app.Lifetime.ApplicationStopping.Register(() => {
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "openapi/{documentName}/openapi.json";
+    });
+    
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/openapi/v1/openapi.json", "Books API V1");
+        c.RoutePrefix = "docs";
+    });
+    
+    // Add Redoc UI
+    app.UseStaticFiles();
+    app.UseFileServer(new FileServerOptions
+    {
+        RequestPath = "/redoc",
+        FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "redoc"))
+    });
+
+    app.MapGet("/redoc", async context =>
+    {
+        context.Response.ContentType = "text/html";
+        await context.Response.SendFileAsync(Path.Combine(Directory.GetCurrentDirectory(), "redoc", "index.html"));
+    });    
 }
 
 app.UseHttpsRedirection();
