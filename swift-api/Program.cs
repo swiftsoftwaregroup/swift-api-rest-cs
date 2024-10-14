@@ -1,18 +1,54 @@
 using Microsoft.EntityFrameworkCore;
 using SwiftAPI.Data;
 using SwiftAPI.Models;
+using DotNetEnv;
+using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseKestrel(options => options.ConfigureEndpointDefaults(o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2));
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Load .env file if it exists
+if (File.Exists(".env"))
+{
+    DotNetEnv.Env.Load();
+}
+
+// Configure the database
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+SqliteConnection? keepAliveConnection = null;
+
+if (string.IsNullOrEmpty(databaseUrl))
+{
+    // Use in-memory SQLite database if DATABASE_URL is not provided
+    keepAliveConnection = new SqliteConnection("Data Source=:memory:");
+    keepAliveConnection.Open();
+
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(keepAliveConnection));
+}
+else
+{
+    // Use SQLite with the provided connection string
+    var connectionString = databaseUrl.Replace("sqlite:///", "Data Source=");
+    builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Ensure the database is created and schema is applied
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
+
+// Dispose the keep-alive connection when the application shuts down
+app.Lifetime.ApplicationStopping.Register(() => {
+    keepAliveConnection?.Dispose();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -84,5 +120,10 @@ app.MapDelete("/books/{id}", async (ApplicationDbContext db, int id) =>
 })
 .WithName("DeleteBook")
 .WithOpenApi();
+
+// Dispose the keep-alive connection when the application shuts down
+app.Lifetime.ApplicationStopping.Register(() => {
+    keepAliveConnection?.Dispose();
+});
 
 app.Run();

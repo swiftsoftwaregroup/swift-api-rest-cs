@@ -54,6 +54,7 @@ dotnet new web --name swift-api --framework net8.0
 dotnet sln add swift-api
 
 # add packages
+dotnet add swift-api package DotNetEnv
 dotnet add swift-api package Microsoft.EntityFrameworkCore
 dotnet add swift-api package Microsoft.EntityFrameworkCore.Design
 dotnet add swift-api package Microsoft.EntityFrameworkCore.Sqlite
