@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -9,28 +10,50 @@ using Xunit;
 
 namespace SwiftAPI.Tests
 {
-    public class BookApiTests : IClassFixture<WebApplicationFactory<Program>>
+    public class BookApiTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
     {
         private readonly WebApplicationFactory<Program> _factory;
+        private readonly SqliteConnection _connection;
 
         public BookApiTests(WebApplicationFactory<Program> factory)
         {
             Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Test");
             
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
+
             _factory = factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+
                     if (descriptor != null)
+                    {
                         services.Remove(descriptor);
+                    }
 
                     services.AddDbContext<ApplicationDbContext>(options =>
                     {
-                        options.UseInMemoryDatabase("TestDb");
+                        options.UseSqlite(_connection);
                     });
+
+                    var sp = services.BuildServiceProvider();
+
+                    using (var scope = sp.CreateScope())
+                    {
+                        var scopedServices = scope.ServiceProvider;
+                        var db = scopedServices.GetRequiredService<ApplicationDbContext>();
+                        db.Database.EnsureCreated();
+                    }
                 });
             });
+        }
+
+        public void Dispose()
+        {
+            _connection.Close();
         }
 
         [Fact]

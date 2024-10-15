@@ -26,16 +26,6 @@ namespace SwiftAPI.Migrations
                 {
                     table.PrimaryKey("PK_Books", x => x.Id);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Books_Author",
-                table: "Books",
-                column: "Author");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Books_Title",
-                table: "Books",
-                column: "Title");
         }
 
         /// <inheritdoc />

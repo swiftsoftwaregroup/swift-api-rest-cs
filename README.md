@@ -10,15 +10,6 @@ Configure project:
 source configure.sh
 ```
 
-Init database:
-
-```bash
-pushd ./swift-api
-  dotnet ef migrations add InitialCreate
-  dotnet ef database update
-popd
-```
-
 Run:
 
 ```bash
@@ -47,6 +38,32 @@ Run unit tests:
 
 ```bash
 dotnet test
+```
+
+## Database Migrations
+
+Add first migration and initialize the database:
+
+```bash
+dotnet ef --project swift-api migrations add InitialCreate
+```
+
+Create database:
+
+```bash
+dotnet ef --project swift-api database update 
+```
+
+Point `.env` to the new database:
+
+```bash
+echo 'DATABASE_URL=sqlite:///./swift-api/books.db' > .env
+```
+
+Run the application:
+
+```bash
+dotnet run
 ```
 
 ## How to create a new project

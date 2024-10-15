@@ -9,6 +9,8 @@ namespace SwiftAPI;
 
 public partial class Program
 {
+    private static SqliteConnection? _keepAliveConnection;
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,9 @@ public partial class Program
         ConfigureApp(app);
 
         app.Run();
+
+        // Dispose the keep-alive connection when the application shuts down
+        _keepAliveConnection?.Dispose();        
     }
 
     public static void ConfigureServices(WebApplicationBuilder builder)
@@ -30,23 +35,22 @@ public partial class Program
             DotNetEnv.Env.Load();
         }
 
-        // Configure the database
         var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-        SqliteConnection? keepAliveConnection = null;
-
-        if (string.IsNullOrEmpty(databaseUrl))
+            if (string.IsNullOrEmpty(databaseUrl))
         {
             // Use in-memory SQLite database if DATABASE_URL is not provided
-            keepAliveConnection = new SqliteConnection("Data Source=:memory:");
-            keepAliveConnection.Open();
+            _keepAliveConnection = new SqliteConnection("DataSource=:memory:");
+            _keepAliveConnection.Open();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(keepAliveConnection));
+            builder.Services.AddDbContext<ApplicationDbContext>(options => 
+                options.UseSqlite(_keepAliveConnection));
         }
         else
         {
             // Use SQLite with the provided connection string
             var connectionString = databaseUrl.Replace("sqlite:///", "Data Source=");
-            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
+            builder.Services.AddDbContext<ApplicationDbContext>(options => 
+                options.UseSqlite(connectionString));
         }
 
         builder.Services.AddEndpointsApiExplorer();
@@ -67,9 +71,21 @@ public partial class Program
         using (var scope = app.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            dbContext.Database.EnsureCreated();
+            if (dbContext.Database.IsSqlite())
+            {
+                if (dbContext.Database.GetConnectionString() != "DataSource=:memory:")
+                {
+                    // File-based SQLite database
+                    dbContext.Database.Migrate();
+                }
+                else
+                {
+                    // In-memory SQLite database
+                    dbContext.Database.EnsureCreated();
+                }
+            }
         }
-
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger(c =>

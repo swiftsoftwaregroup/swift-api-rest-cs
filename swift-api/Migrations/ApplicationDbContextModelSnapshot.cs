@@ -40,10 +40,6 @@ namespace SwiftAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Author");
-
-                    b.HasIndex("Title");
-
                     b.ToTable("Books");
                 });
 #pragma warning restore 612, 618

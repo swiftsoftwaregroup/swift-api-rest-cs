@@ -11,7 +11,7 @@ using SwiftAPI.Data;
 namespace SwiftAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241013235231_InitialCreate")]
+    [Migration("20241015000558_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -42,10 +42,6 @@ namespace SwiftAPI.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Author");
-
-                    b.HasIndex("Title");
 
                     b.ToTable("Books");
                 });
