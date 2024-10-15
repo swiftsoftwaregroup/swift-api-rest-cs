@@ -42,6 +42,8 @@ dotnet test
 
 ## Database Migrations
 
+> If you want to use migrations
+
 Add first migration and initialize the database:
 
 ```bash
