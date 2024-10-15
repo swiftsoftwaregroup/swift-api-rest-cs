@@ -22,12 +22,13 @@ public partial class Program
         app.Run();
 
         // Dispose the keep-alive connection when the application shuts down
-        _keepAliveConnection?.Dispose();        
+        _keepAliveConnection?.Dispose();
     }
 
     public static void ConfigureServices(WebApplicationBuilder builder)
     {
-        builder.WebHost.UseKestrel(options => options.ConfigureEndpointDefaults(o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2));
+        // Listen on all interfaces on port 5000
+        builder.WebHost.ConfigureKestrel(serverOptions => serverOptions.ListenAnyIP(5000));
 
         // Load .env file if it exists
         if (File.Exists(".env"))
@@ -36,20 +37,20 @@ public partial class Program
         }
 
         var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-            if (string.IsNullOrEmpty(databaseUrl))
+        if (string.IsNullOrEmpty(databaseUrl))
         {
             // Use in-memory SQLite database if DATABASE_URL is not provided
             _keepAliveConnection = new SqliteConnection("DataSource=:memory:");
             _keepAliveConnection.Open();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options => 
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(_keepAliveConnection));
         }
         else
         {
             // Use SQLite with the provided connection string
             var connectionString = databaseUrl.Replace("sqlite:///", "Data Source=");
-            builder.Services.AddDbContext<ApplicationDbContext>(options => 
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(connectionString));
         }
 
@@ -85,39 +86,33 @@ public partial class Program
                 }
             }
         }
-        
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger(c =>
-            {
-                c.RouteTemplate = "openapi/{documentName}/openapi.json";
-            });
-            
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/openapi/v1/openapi.json", "Books API V1");
-                c.RoutePrefix = "docs";
-            });
-            
-            // Add Redoc UI only if not in test environment
-            if (!app.Environment.IsEnvironment("Test"))
-            {
-                var redocPath = Path.Combine(Directory.GetCurrentDirectory(), "redoc");
-                if (Directory.Exists(redocPath))
-                {
-                    app.UseStaticFiles();
-                    app.UseFileServer(new FileServerOptions
-                    {
-                        RequestPath = "/redoc",
-                        FileProvider = new PhysicalFileProvider(redocPath)
-                    });
 
-                    app.MapGet("/redoc", async context =>
-                    {
-                        context.Response.ContentType = "text/html";
-                        await context.Response.SendFileAsync(Path.Combine(redocPath, "index.html"));
-                    });
-                }
+        // Add Swagger middleware
+        app.UseSwagger(c => c.RouteTemplate = "openapi/{documentName}/openapi.json");
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/openapi/v1/openapi.json", "Books API V1");
+            c.RoutePrefix = "docs";
+        });
+
+        // Add Redoc UI only if not in test environment
+        if (!app.Environment.IsEnvironment("Test"))
+        {
+            var redocPath = Path.Combine(Directory.GetCurrentDirectory(), "redoc");
+            if (Directory.Exists(redocPath))
+            {
+                app.UseStaticFiles();
+                app.UseFileServer(new FileServerOptions
+                {
+                    RequestPath = "/redoc",
+                    FileProvider = new PhysicalFileProvider(redocPath)
+                });
+
+                app.MapGet("/redoc", async context =>
+                {
+                    context.Response.ContentType = "text/html";
+                    await context.Response.SendFileAsync(Path.Combine(redocPath, "index.html"));
+                });
             }
         }
 

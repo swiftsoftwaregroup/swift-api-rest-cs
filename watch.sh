@@ -2,4 +2,4 @@
 
 source configure.sh
 
-dotnet run --project swift-api
+dotnet watch --project swift-api run

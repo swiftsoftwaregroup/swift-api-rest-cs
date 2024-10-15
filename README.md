@@ -2,6 +2,10 @@
 
 REST Web API using C# and ASP.NET Core
 
+## Setup
+
+* [Setup for macOS](./docs/setup-macos.md)
+
 ## Run
 
 Configure project:
@@ -66,6 +70,22 @@ Run the application:
 
 ```bash
 dotnet run
+```
+
+## Run in Podman / Docker 
+
+> In order to do this you will need Podman. See [Setup Podman on macOS](./docs/setup-podman-macos.md) for details.
+
+Rebuild container image and start container:
+
+```bash
+./podman.sh
+```
+
+Delete container and image:
+
+```bash
+./podman-delete.sh
 ```
 
 ## How to create a new project
